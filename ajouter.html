@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ajouter un cas - CHU Mustapha Bacha</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0056b3, #007cba);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header h2 {
+            font-size: 1.3em;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: #007cba;
+            background: white;
+            outline: none;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .submit-btn {
+            background: #28a745;
+            color: white;
+            padding: 18px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .submit-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .back-btn {
+                position: relative;
+                top: auto;
+                left: auto;
+                margin-bottom: 20px;
+                display: inline-block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- En-tête -->
+        <div class="header">
+            <a href="index.html" class="back-btn">← Retour</a>
+            <h1>CHU MUSTAPHA BACHA</h1>
+            <h2>Nouveau Cas Radiologique</h2>
+        </div>
+
+        <!-- Formulaire -->
+        <div class="form-container">
+            <form id="caseForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="medecin">Nom et Prénom du Médecin :</label>
+                        <input type="text" id="medecin" placeholder="Dr. Nom Prénom" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="patient">Nom et Prénom du Patient :</label>
+                        <input type="text" id="patient" placeholder="Nom Prénom du patient" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="dateExamen">Date d'examen :</label>
+                    <input type="date" id="dateExamen" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="examType">Type d'examen :</label>
+                    <select id="examType" required onchange="updateSpecificTypes()">
+                        <option value="">Sélectionnez un type d'examen</option>
+                        <option value="IRM">IRM</option>
+                        <option value="Scanner">Scanner / TDM</option>
+                        <option value="Échographie">Échographie</option>
+                        <option value="Radiographie">Radiographie standard</option>
+                        <option value="Mammographie">Mammographie</option>
+                        <option value="Interventionnelle">Imagerie interventionnelle</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="specificType">Type spécifique :</label>
+                    <select id="specificType" required>
+                        <option value="">Sélectionnez d'abord le type d'examen</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="diagnostic">Diagnostic :</label>
+                    <textarea id="diagnostic" placeholder="Entrez le diagnostic..." rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="content">Observations / Commentaires :</label>
+                    <textarea id="content" placeholder="Décrivez les observations, résultats, ou informations importantes..." rows="5"></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">💾 Enregistrer le cas</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 🔥 Configuration Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAxdeqfmgBPWpWXY9U4HsncExMtAmOLQkM",
+            authDomain: "radial-52865.firebaseapp.com",
+            projectId: "radial-52865",
+            storageBucket: "radial-52865.firebasestorage.app",
+            messagingSenderId: "690568851415",
+            appId: "1:690568851415:web:1808813dfd9c7b60dc6592"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Types d'examens spécifiques
+        const examTypes = {
+            "IRM": ["IRM cérébrale", "IRM médullaire", "IRM rachidienne", "IRM abdominale", "IRM pelvienne", "IRM mammaire", "IRM cardiaque", "IRM rochers", "IRM articulaire"],
+            "Scanner": ["TDM cérébrale", "TDM thoracique", "TDM abdominale", "TDM pelvienne", "TDM osseuse", "TDM rochers"],
+            "Échographie": ["Échographie abdominale", "Échographie pelvienne", "Échographie mammaire", "Échographie thyroïdienne", "Échographie testiculaire", "Échographie cardiaque", "Échographie des parties molles", "Écho-Doppler vasculaire", "Écho-Doppler cardiaque"],
+            "Radiographie": ["Radiographie thoracique", "Radiographie osseuse", "Radiographie du rachis", "Radiographie dentaire / panoramique", "Radiographie abdominale sans préparation"],
+            "Mammographie": ["Mammographie standard", "Mammographie avec compression", "Mammographie numérique"],
+            "Interventionnelle": ["Ponction biopsie", "Drainage", "Infiltration", "Arthrographie", "Myélographie"]
+        };
+
+        // Mise à jour des sous-types
+        function updateSpecificTypes() {
+            const generalType = document.getElementById('examType').value;
+            const specificSelect = document.getElementById('specificType');
+            specificSelect.innerHTML = '<option value="">Sélectionnez le type spécifique</option>';
+            if (generalType && examTypes[generalType]) {
+                examTypes[generalType].forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type;
+                    option.textContent = type;
+                    specificSelect.appendChild(option);
+                });
+            }
+        }
+
+        // Date du jour par défaut
+        document.getElementById('dateExamen').valueAsDate = new Date();
+
+        // Soumission du formulaire
+        document.getElementById('caseForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ Enregistrement en cours...';
+
+            const medecin = document.getElementById('medecin').value;
+            const patient = document.getElementById('patient').value;
+            const dateExamen = document.getElementById('dateExamen').value;
+            const examType = document.getElementById('examType').value;
+            const specificType = document.getElementById('specificType').value;
+            const diagnostic = document.getElementById('diagnostic').value;
+            const content = document.getElementById('content').value;
+
+            if (medecin && patient && dateExamen && examType && specificType) {
+                try {
+                    await db.collection('cas').add({
+                        medecin,
+                        patient,
+                        dateExamen,
+                        examType,
+                        specificType,
+                        diagnostic,
+                        content,
+                        timestamp: new Date()
+                    });
+
+                    if (confirm('Cas enregistré avec succès ! Voulez-vous retourner à la page d\'accueil ?')) {
+                        window.location.href = 'index.html';
+                    } else {
+                        document.getElementById('caseForm').reset();
+                        document.getElementById('dateExamen').valueAsDate = new Date();
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = '💾 Enregistrer le cas';
+                    }
+
+                } catch (error) {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors de l\'enregistrement. Veuillez réessayer.');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '💾 Enregistrer le cas';
+                }
+            } else {
+                alert('Veuillez remplir tous les champs obligatoires !');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '💾 Enregistrer le cas';
+            }
+        });
+
+        updateSpecificTypes();
+    </script>
+</body>
+</html>
